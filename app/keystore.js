@@ -1,13 +1,16 @@
+// Copyright (c) 2016 OpenNot.es
 "use strict";
-var KeyStore = {
+var OpenNotes = OpenNotes || {};
+
+var OpenNotes.keystore = {
 	db: null;
-	dbName: "OpenNotesKeyStore";
+	dbName: "OpenNotesOpenNotes.keystore";
 	objectStoreName: "Keys";
 	open: function() {
 		return new Promise(function(fulfill, reject){
-			var req = indexedDB.open(KeyStore.dbName, 1);
+			var req = indexedDB.open(OpenNotes.keystore.dbName, 1);
 			req.onsuccess = function(evt) {
-				KeyStore.db = evt.target.result;
+				OpenNotes.keystore.db = evt.target.result;
 				fulfill(self);
 			};
 			req.onfailure = function(evt) {
@@ -18,9 +21,9 @@ var KeyStore = {
 				reject(new Error("Database already open"));
 			};
 			req.onupgradeneeded = function(evt) {
-				KeyStore.db = evt.target.result;
-				if(!KeyStore.db.objectStoreName.contains(KeyStore.objectStoreName)) {
-					var objectStore = KeyStore.db.createObjectStore(KeyStore.objectStoreName, {autoIncrement: true});
+				OpenNotes.keystore.db = evt.target.result;
+				if(!OpenNotes.keystore.db.objectStoreName.contains(OpenNotes.keystore.objectStoreName)) {
+					var objectStore = OpenNotes.keystore.db.createObjectStore(OpenNotes.keystore.objectStoreName, {autoIncrement: true});
 					objectStore.createIndex("name", "name", {unique: false});
 					objectStore.createIndex("spki", "spki", {unique: false});
 				}
@@ -33,15 +36,15 @@ var KeyStore = {
 	},
 	close: function() {
 		return new Promise(function(fulfill, reject) {
-			KeyStore.db.close();
-			KeyStore.db = null;
+			OpenNotes.keystore.db.close();
+			OpenNotes.keystore.db = null;
 			fulfill();
 		});
 	},
 	saveKey: function(publicKey, privateKey, name) {
 		return new Promise(function(fulfill, reject)) {
-			if(!KeyStore.db) {
-				KeyStore.open();
+			if(!OpenNotes.keystore.db) {
+				OpenNotes.keystore.open();
 			}
 			window.crypto.subtle.exportKey('spki', publicKey).then(function(spki) {
 				var savedObject = {
@@ -50,7 +53,7 @@ var KeyStore = {
 					name: name, 
 					spki: spki
 				};
-				var transaction = KeyStore.db.transaction([KeyStore.objectStoreName], "readwrite");
+				var transaction = OpenNotes.keystore.db.transaction([OpenNotes.keystore.objectStoreName], "readwrite");
 				transaction.onerror = function(evt) {
 					reject(evt.error);
 				};
@@ -60,7 +63,7 @@ var KeyStore = {
 				transaction.oncomplete = function(evt) {
 					fulfill(savedObject);
 				};
-				var objectStore = transaction.objectStore(KeyStore.objectStoreName);
+				var objectStore = transaction.objectStore(OpenNotes.keystore.objectStoreName);
 				var request = objectStore.add(savedObject);
 			}).catch(function(err) {
 				reject(err);
@@ -69,11 +72,11 @@ var KeyStore = {
 },
 getKey: function(propertyName, propertyValue) {
 	return new Promise(function(fulfill, reject) {
-		if(!KeyStore.db) {
-			KeyStore.open();
+		if(!OpenNotes.keystore.db) {
+			OpenNotes.keystore.open();
 		}
-		var transaction = KeyStore.db.transasction([KeyStore.objectStoreName], "readonly");
-		var objectStore = transaction.objectStore(KeyStore.objectStoreName);
+		var transaction = OpenNotes.keystore.db.transasction([OpenNotes.keystore.objectStoreName], "readonly");
+		var objectStore = transaction.objectStore(OpenNotes.keystore.objectStoreName);
 		var request;
 		switch(propertyName) {
 			case "id":
@@ -98,18 +101,18 @@ getKey: function(propertyName, propertyValue) {
 },
 listKeys: function() {
 	return new Promise(function(fullfill, reject) {
-		if(!KeyStore.db) {
-			KeyStore.open();
+		if(!OpenNotes.keystore.db) {
+			OpenNotes.keystore.open();
 		}
 		var list = [];
-		var transaction = KeyStore.db.transaction([KeyStore.objectStoreName], "readonly");
+		var transaction = OpenNotes.keystore.db.transaction([OpenNotes.keystore.objectStoreName], "readonly");
 		transaction.onerror = function(evt) {
 			reject(evt.error);
 		};
 		transaction.onabort = function(evt) {
 			reject(evt.error);
 		};
-		var objectStore = transaction.objectStore(KeyStore.objectStoreName);
+		var objectStore = transaction.objectStore(OpenNotes.keystore.objectStoreName);
 		var cursor = objectStore.openCursor();
 		cursor.onsuccess = function(evt) {
 			if(evt.target.result) {
