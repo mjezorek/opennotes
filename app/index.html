@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>OpenNot.es: Note Taking Application</title>
+	<script src="jquery-3.1.1.slim.min.js"></script>
+	<script src="app.js"></script>
+</head>
+<body>
+
+<section id="keys">
+	<h1>Your keys:</h1>
+	<ul id="key-list">
+	</ul>
+</section>
+
+<button id="create-key">Create Key Pair and Authenticate</button>
+<script>
+$("document").ready( function() {
+	OpenNotes.init();
+});
+</script>
